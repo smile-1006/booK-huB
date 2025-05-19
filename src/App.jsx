@@ -1,60 +1,77 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
-const genres = [
-  { name: 'All', color: 'bg-gray-500' },
-  { name: 'Fiction', color: 'bg-blue-500' },
-  { name: 'Non-Fiction', color: 'bg-green-500' },
-  { name: 'Mystery', color: 'bg-purple-500' },
-  { name: 'Sci-Fi', color: 'bg-indigo-500' },
-  { name: 'Romance', color: 'bg-pink-500' },
-];
-
-const booksData = [
-  {
-    id: 1,
-    title: 'The Great Gatsby',
-    author: 'F. Scott Fitzgerald',
-    description: 'A novel set in the Roaring Twenties.',
-    genre: 'Fiction',
-  },
-  {
-    id: 2,
-    title: 'Becoming',
-    author: 'Michelle Obama',
-    description: 'A memoir by the former First Lady.',
-    genre: 'Non-Fiction',
-  },
-  {
-    id: 3,
-    title: 'The Da Vinci Code',
-    author: 'Dan Brown',
-    description: 'A mystery thriller novel.',
-    genre: 'Mystery',
-  },
-  {
-    id: 4,
-    title: 'Dune',
-    author: 'Frank Herbert',
-    description: 'A science fiction novel.',
-    genre: 'Sci-Fi',
-  },
-  {
-    id: 5,
-    title: 'Pride and Prejudice',
-    author: 'Jane Austen',
-    description: 'A classic romance novel.',
-    genre: 'Romance',
-  },
-];
+const genreColors = {
+  'All': 'bg-gray-500',
+  'Fiction': 'bg-blue-500',
+  'Non-Fiction': 'bg-green-500',
+  'Mystery': 'bg-purple-500',
+  'Sci-Fi': 'bg-indigo-500',
+  'Romance': 'bg-pink-500',
+  'Other': 'bg-gray-400',
+};
 
 function App() {
+  const [books, setBooks] = useState([]);
+  const [genres, setGenres] = useState(['All']);
   const [selectedGenre, setSelectedGenre] = useState('All');
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [showFavorites, setShowFavorites] = useState(false);
+  const [autocompleteOptions, setAutocompleteOptions] = useState([]);
+
+  useEffect(() => {
+    fetchBooks('');
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const fetchBooks = async (query) => {
+    try {
+      const endpoint = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`;
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      const docs = data.docs || [];
+
+      // Extract unique genres from subjects
+      const genreSet = new Set();
+      docs.forEach((doc) => {
+        if (doc.subject) {
+          doc.subject.forEach((subj) => genreSet.add(subj));
+        }
+      });
+      const genreList = ['All', ...Array.from(genreSet).slice(0, 10)]; // limit to 10 genres for UI
+
+      setGenres(genreList);
+
+      // Map docs to book objects
+      const mappedBooks = docs.map((doc) => ({
+        id: doc.key,
+        title: doc.title,
+        author: doc.author_name ? doc.author_name.join(', ') : 'Unknown',
+        description: doc.first_sentence ? (typeof doc.first_sentence === 'string' ? doc.first_sentence : doc.first_sentence.join(' ')) : 'No description available.',
+        genre: doc.subject ? doc.subject[0] : 'Other',
+        cover_i: doc.cover_i,
+        rating: doc.ratings_average || null,
+      }));
+
+      setBooks(mappedBooks);
+
+      // Set autocomplete options
+      setAutocompleteOptions(
+        mappedBooks.map((book) => book.title)
+      );
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    }
+  };
 
   const filteredBooks = useMemo(() => {
-    let filtered = booksData;
+    let filtered = books;
 
     if (selectedGenre !== 'All') {
       filtered = filtered.filter((book) => book.genre === selectedGenre);
@@ -74,7 +91,7 @@ function App() {
     }
 
     return filtered;
-  }, [selectedGenre, searchTerm, favorites, showFavorites]);
+  }, [books, selectedGenre, searchTerm, favorites, showFavorites]);
 
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
@@ -82,8 +99,7 @@ function App() {
     );
   };
 
-  const selectedGenreColor =
-    genres.find((g) => g.name === selectedGenre)?.color || 'bg-gray-500';
+  const selectedGenreColor = genreColors[selectedGenre] || 'bg-gray-500';
 
   return (
     <div className={`min-h-screen p-4 ${selectedGenreColor} bg-opacity-20 transition-colors duration-500`}>
@@ -92,18 +108,18 @@ function App() {
         <div className="flex flex-wrap gap-2 mb-4">
           {genres.map((genre) => (
             <button
-              key={genre.name}
+              key={genre}
               className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-                selectedGenre === genre.name
-                  ? `${genre.color} text-white`
+                selectedGenre === genre
+                  ? `${genreColors[genre] || 'bg-gray-400'} text-white`
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
               onClick={() => {
-                setSelectedGenre(genre.name);
+                setSelectedGenre(genre);
                 setShowFavorites(false);
               }}
             >
-              {genre.name}
+              {genre}
             </button>
           ))}
           <button
@@ -122,19 +138,16 @@ function App() {
           placeholder="Search books or authors..."
           className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            fetchBooks(e.target.value);
+          }}
           list="autocomplete-options"
         />
         <datalist id="autocomplete-options">
-          {booksData
-            .filter(
-              (book) =>
-                book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                book.author.toLowerCase().includes(searchTerm.toLowerCase())
-            )
-            .map((book) => (
-              <option key={book.id} value={book.title} />
-            ))}
+          {autocompleteOptions.map((option, index) => (
+            <option key={index} value={option} />
+          ))}
         </datalist>
       </header>
       <main className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -147,9 +160,23 @@ function App() {
               className="bg-white rounded-lg shadow p-4 flex flex-col justify-between transition-transform transform hover:scale-105"
             >
               <div>
+                {book.cover_i ? (
+                  <img
+                    src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
+                    alt={`${book.title} cover`}
+                    className="mb-2 rounded"
+                  />
+                ) : (
+                  <div className="mb-2 h-48 bg-gray-200 flex items-center justify-center text-gray-400 rounded">
+                    No Image
+                  </div>
+                )}
                 <h2 className="text-xl font-semibold mb-1">{book.title}</h2>
                 <p className="text-gray-600 mb-2">by {book.author}</p>
                 <p className="text-gray-700">{book.description}</p>
+                {book.rating && (
+                  <p className="text-yellow-500 font-semibold mt-2">Rating: {book.rating}</p>
+                )}
               </div>
               <button
                 onClick={() => toggleFavorite(book.id)}
