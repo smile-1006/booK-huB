@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 const genreColors = {
-  'All': 'bg-gray-500',
-  'Fiction': 'bg-blue-500',
-  'Non-Fiction': 'bg-green-500',
-  'Mystery': 'bg-purple-500',
-  'Sci-Fi': 'bg-indigo-500',
-  'Romance': 'bg-pink-500',
-  'Other': 'bg-gray-400',
+  'All': 'bg-gradient-to-br from-gray-500 to-gray-700',
+  'Fiction': 'bg-gradient-to-br from-blue-500 to-indigo-700',
+  'Non-Fiction': 'bg-gradient-to-br from-green-500 to-emerald-700',
+  'Mystery': 'bg-gradient-to-br from-purple-500 to-violet-700',
+  'Sci-Fi': 'bg-gradient-to-br from-indigo-500 to-blue-700',
+  'Romance': 'bg-gradient-to-br from-pink-500 to-rose-700',
+  'Other': 'bg-gradient-to-br from-gray-400 to-gray-600',
 };
 
 function App() {
@@ -93,66 +93,69 @@ function App() {
     );
   };
 
-  const selectedGenreColor = genreColors[selectedGenre] || 'bg-gray-500';
+  const selectedGenreColor = genreColors[selectedGenre] || genreColors['Other'];
 
   return (
-    <div className={`min-h-screen p-4 ${selectedGenreColor} bg-opacity-20 transition-colors duration-500`}>
-      <header className="max-w-4xl mx-auto mb-6">
-        <h1 className="text-4xl font-bold mb-4 text-gray-900">Book Hub</h1>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {genres.map((genre) => (
+    <div className={`min-h-screen p-4 ${selectedGenreColor} transition-colors duration-500`}>
+      <div className="fixed inset-0 bg-white bg-opacity-10 backdrop-blur-[2px] pointer-events-none" />
+      <header className="relative max-w-4xl mx-auto mb-6 z-10">
+        <h1 className="text-5xl font-bold mb-6 text-white text-center drop-shadow-lg">Book Hub</h1>
+        <div className="backdrop-blur-md bg-white bg-opacity-10 p-6 rounded-xl shadow-lg border border-white border-opacity-20">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {genres.map((genre) => (
+              <button
+                key={genre}
+                className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
+                  selectedGenre === genre
+                    ? `${genreColors[genre] || genreColors['Other']} text-white shadow-lg scale-105`
+                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30 hover:scale-105'
+                }`}
+                onClick={() => {
+                  setSelectedGenre(genre);
+                  setShowFavorites(false);
+                }}
+              >
+                {genre}
+              </button>
+            ))}
             <button
-              key={genre}
-              className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-                selectedGenre === genre
-                  ? `${genreColors[genre] || 'bg-gray-400'} text-white`
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
+                showFavorites
+                  ? 'bg-yellow-400 text-white shadow-lg scale-105'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30 hover:scale-105'
               }`}
-              onClick={() => {
-                setSelectedGenre(genre);
-                setShowFavorites(false);
-              }}
+              onClick={() => setShowFavorites((prev) => !prev)}
             >
-              {genre}
+              Favorites
             </button>
-          ))}
-          <button
-            className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300 ${
-              showFavorites
-                ? 'bg-yellow-400 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-            onClick={() => setShowFavorites((prev) => !prev)}
-          >
-            Favorites
-          </button>
+          </div>
+          <input
+            type="text"
+            placeholder="Search books or authors..."
+            className="w-full p-3 rounded-lg bg-white bg-opacity-20 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 text-white placeholder-white placeholder-opacity-70"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              fetchBooks(e.target.value);
+            }}
+            list="autocomplete-options"
+          />
+          <datalist id="autocomplete-options">
+            {autocompleteOptions.map((option, index) => (
+              <option key={index} value={option} />
+            ))}
+          </datalist>
         </div>
-        <input
-          type="text"
-          placeholder="Search books or authors..."
-          className="w-full p-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            fetchBooks(e.target.value);
-          }}
-          list="autocomplete-options"
-        />
-        <datalist id="autocomplete-options">
-          {autocompleteOptions.map((option, index) => (
-            <option key={index} value={option} />
-          ))}
-        </datalist>
       </header>
-      <main className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <main className="relative max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6 z-10">
         {filteredBooks.length === 0 ? (
-          <p className="text-center col-span-full text-gray-700">No books found.</p>
+          <p className="text-center col-span-full text-white text-opacity-90 backdrop-blur-md bg-white bg-opacity-10 p-6 rounded-xl">No books found.</p>
         ) : (
           filteredBooks.map((book) => (
             <div key={book.id} className="group perspective">
               <div className="relative w-full h-96 transition-transform duration-700 transform-style-preserve-3d">
                 {/* Front Side */}
-                <div className={`absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-lg overflow-hidden border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 flex flex-col items-center justify-center ${genreColors[book.genre] ? genreColors[book.genre].replace('bg-', 'bg-opacity-30 ') : 'bg-gray-200 bg-opacity-30'}`}>
+                <div className={`absolute inset-0 w-full h-full backface-hidden rounded-xl shadow-lg overflow-hidden border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-10 flex flex-col items-center justify-center ${genreColors[book.genre] ? genreColors[book.genre].replace('bg-gradient-to-br', 'bg-opacity-30') : 'bg-white bg-opacity-20'}`}>
                   {book.cover_i ? (
                     <img
                       src={`https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`}
@@ -160,27 +163,27 @@ function App() {
                       className="w-full h-72 object-contain"
                     />
                   ) : (
-                    <div className="w-full h-72 bg-gray-200 flex items-center justify-center text-gray-400">
+                    <div className="w-full h-72 bg-white bg-opacity-10 flex items-center justify-center text-white text-opacity-50">
                       No Image
                     </div>
                   )}
                   <h2 className="text-xl font-bold mt-2 text-white drop-shadow-md text-center px-2">{book.title}</h2>
-                  <p className="text-indigo-200 italic drop-shadow-sm text-center">{book.author}</p>
+                  <p className="text-white text-opacity-80 italic drop-shadow-sm text-center">{book.author}</p>
                 </div>
                 {/* Back Side */}
-                <div className="absolute inset-0 w-full h-full backface-hidden card-back rounded-lg shadow-lg overflow-auto border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 p-4 text-white text-opacity-90">
-                  <h2 className="text-lg font-bold mb-2">{book.title}</h2>
-                  <p className="italic mb-2">by {book.author}</p>
-                  <p className="mb-4 whitespace-pre-wrap">{book.description}</p>
+                <div className="absolute inset-0 w-full h-full backface-hidden card-back rounded-xl shadow-lg overflow-auto border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-10 p-6 text-white">
+                  <h2 className="text-xl font-bold mb-2">{book.title}</h2>
+                  <p className="italic mb-4 text-white text-opacity-90">by {book.author}</p>
+                  <p className="mb-4 whitespace-pre-wrap text-white text-opacity-80">{book.description}</p>
                   {book.rating && (
-                    <p className="text-yellow-400 font-semibold">Rating: {book.rating}</p>
+                    <p className="text-yellow-300 font-semibold mb-4">Rating: {book.rating.toFixed(1)} ★</p>
                   )}
                   <button
                     onClick={() => toggleFavorite(book.id)}
-                    className={`mt-4 px-4 py-2 rounded-full font-semibold transition-colors duration-300 shadow-md ${
+                    className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
                       favorites.includes(book.id)
-                        ? 'bg-yellow-400 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-yellow-400 text-white shadow-lg scale-105'
+                        : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30 hover:scale-105'
                     }`}
                     aria-label={favorites.includes(book.id) ? 'Remove from favorites' : 'Add to favorites'}
                   >

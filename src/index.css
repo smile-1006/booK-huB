@@ -23,6 +23,18 @@
   transform: rotateY(180deg);
 }
 
-.group:hover .group-hover\:rotate-y-180 {
+.group:hover .transform-style-preserve-3d {
   transform: rotateY(180deg);
+}
+
+@layer utilities {
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+  .backdrop-blur-md {
+    backdrop-filter: blur(8px);
+  }
+  .backdrop-blur-lg {
+    backdrop-filter: blur(16px);
+  }
 }
