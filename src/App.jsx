@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 const genreColors = {
-  'All': 'bg-gradient-to-br from-gray-500 to-gray-700',
-  'Fiction': 'bg-gradient-to-br from-blue-500 to-indigo-700',
-  'Non-Fiction': 'bg-gradient-to-br from-green-500 to-emerald-700',
-  'Mystery': 'bg-gradient-to-br from-purple-500 to-violet-700',
-  'Sci-Fi': 'bg-gradient-to-br from-indigo-500 to-blue-700',
-  'Romance': 'bg-gradient-to-br from-pink-500 to-rose-700',
+  'All': 'bg-gradient-to-br from-slate-400 to-slate-600',
+  'Fiction': 'bg-gradient-to-br from-sky-400 to-blue-600',
+  'Non-Fiction': 'bg-gradient-to-br from-emerald-400 to-green-600',
+  'Mystery': 'bg-gradient-to-br from-violet-400 to-purple-600',
+  'Sci-Fi': 'bg-gradient-to-br from-cyan-400 to-blue-600',
+  'Romance': 'bg-gradient-to-br from-rose-400 to-pink-600',
+  'Fantasy': 'bg-gradient-to-br from-indigo-400 to-purple-600',
+  'Horror': 'bg-gradient-to-br from-red-400 to-rose-600',
+  'Biography': 'bg-gradient-to-br from-amber-400 to-yellow-600',
+  'History': 'bg-gradient-to-br from-orange-400 to-red-600',
+  'Poetry': 'bg-gradient-to-br from-fuchsia-400 to-pink-600',
   'Other': 'bg-gradient-to-br from-gray-400 to-gray-600',
 };
 
@@ -37,13 +42,17 @@ function App() {
       const data = await response.json();
       const docs = data.docs || [];
 
-      const genreSet = new Set();
+      const genreSet = new Set(['All']);
       docs.forEach((doc) => {
         if (doc.subject) {
-          doc.subject.forEach((subj) => genreSet.add(subj));
+          doc.subject.forEach((subj) => {
+            if (genreColors[subj]) {
+              genreSet.add(subj);
+            }
+          });
         }
       });
-      const genreList = ['All', ...Array.from(genreSet).slice(0, 10)];
+      const genreList = Array.from(genreSet);
 
       setGenres(genreList);
 
@@ -52,7 +61,7 @@ function App() {
         title: doc.title,
         author: doc.author_name ? doc.author_name.join(', ') : 'Unknown',
         description: doc.first_sentence ? (typeof doc.first_sentence === 'string' ? doc.first_sentence : doc.first_sentence.join(' ')) : 'No description available.',
-        genre: doc.subject ? doc.subject[0] : 'Other',
+        genre: doc.subject ? (doc.subject.find(subj => genreColors[subj]) || 'Other') : 'Other',
         cover_i: doc.cover_i,
         rating: doc.ratings_average || null,
       }));
@@ -107,7 +116,7 @@ function App() {
                 key={genre}
                 className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
                   selectedGenre === genre
-                    ? `${genreColors[genre] || genreColors['Other']} text-white shadow-lg scale-105`
+                    ? `${genreColors[genre]} text-white shadow-lg scale-105`
                     : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30 hover:scale-105'
                 }`}
                 onClick={() => {
@@ -121,7 +130,7 @@ function App() {
             <button
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
                 showFavorites
-                  ? 'bg-yellow-400 text-white shadow-lg scale-105'
+                  ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg scale-105'
                   : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30 hover:scale-105'
               }`}
               onClick={() => setShowFavorites((prev) => !prev)}
@@ -182,7 +191,7 @@ function App() {
                     onClick={() => toggleFavorite(book.id)}
                     className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 ${
                       favorites.includes(book.id)
-                        ? 'bg-yellow-400 text-white shadow-lg scale-105'
+                        ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg scale-105'
                         : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30 hover:scale-105'
                     }`}
                     aria-label={favorites.includes(book.id) ? 'Remove from favorites' : 'Add to favorites'}
