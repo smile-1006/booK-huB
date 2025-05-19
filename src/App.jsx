@@ -37,18 +37,16 @@ function App() {
       const data = await response.json();
       const docs = data.docs || [];
 
-      // Extract unique genres from subjects
       const genreSet = new Set();
       docs.forEach((doc) => {
         if (doc.subject) {
           doc.subject.forEach((subj) => genreSet.add(subj));
         }
       });
-      const genreList = ['All', ...Array.from(genreSet).slice(0, 10)]; // limit to 10 genres for UI
+      const genreList = ['All', ...Array.from(genreSet).slice(0, 10)];
 
       setGenres(genreList);
 
-      // Map docs to book objects
       const mappedBooks = docs.map((doc) => ({
         id: doc.key,
         title: doc.title,
@@ -60,11 +58,7 @@ function App() {
       }));
 
       setBooks(mappedBooks);
-
-      // Set autocomplete options
-      setAutocompleteOptions(
-        mappedBooks.map((book) => book.title)
-      );
+      setAutocompleteOptions(mappedBooks.map((book) => book.title));
     } catch (error) {
       console.error('Error fetching books:', error);
     }
@@ -155,14 +149,10 @@ function App() {
           <p className="text-center col-span-full text-gray-700">No books found.</p>
         ) : (
           filteredBooks.map((book) => (
-            <div
-              key={book.id}
-              className="group perspective"
-              style={{ perspective: '1000px' }}
-            >
-              <div className={`relative w-full h-96 duration-700 transform-style-preserve-3d group-hover:rotate-y-180`}>
+            <div key={book.id} className="group perspective">
+              <div className="relative w-full h-96 transition-transform duration-700 transform-style-preserve-3d">
                 {/* Front Side */}
-                <div className={`absolute w-full h-full backface-hidden rounded-lg shadow-lg overflow-hidden border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 flex flex-col items-center justify-center ${genreColors[book.genre] ? genreColors[book.genre].replace('bg-', 'bg-opacity-30 ') : 'bg-gray-200 bg-opacity-30'}`} style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}>
+                <div className={`absolute inset-0 w-full h-full backface-hidden rounded-lg shadow-lg overflow-hidden border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 flex flex-col items-center justify-center ${genreColors[book.genre] ? genreColors[book.genre].replace('bg-', 'bg-opacity-30 ') : 'bg-gray-200 bg-opacity-30'}`}>
                   {book.cover_i ? (
                     <img
                       src={`https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`}
@@ -178,7 +168,7 @@ function App() {
                   <p className="text-indigo-200 italic drop-shadow-sm text-center">{book.author}</p>
                 </div>
                 {/* Back Side */}
-                <div className="absolute w-full h-full backface-hidden rounded-lg shadow-lg overflow-auto border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 rotate-y-180 p-4 text-white text-opacity-90" style={{ WebkitBackfaceVisibility: 'hidden', backfaceVisibility: 'hidden' }}>
+                <div className="absolute inset-0 w-full h-full backface-hidden card-back rounded-lg shadow-lg overflow-auto border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 p-4 text-white text-opacity-90">
                   <h2 className="text-lg font-bold mb-2">{book.title}</h2>
                   <p className="italic mb-2">by {book.author}</p>
                   <p className="mb-4 whitespace-pre-wrap">{book.description}</p>
