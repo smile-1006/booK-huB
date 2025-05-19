@@ -157,40 +157,46 @@ function App() {
           filteredBooks.map((book) => (
             <div
               key={book.id}
-              className={`rounded-lg p-4 flex flex-col justify-between transition-transform transform hover:scale-105 shadow-lg backdrop-blur-md bg-white bg-opacity-20 border border-white border-opacity-30 ${
-                genreColors[book.genre] ? genreColors[book.genre].replace('bg-', 'bg-opacity-30 ') : 'bg-gray-200 bg-opacity-30'
-              }`}
+              className="group perspective"
             >
-              <div>
-                {book.cover_i ? (
-                  <img
-                    src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
-                    alt={`${book.title} cover`}
-                    className="mb-4 rounded-lg w-full h-64 object-cover shadow-md"
-                  />
-                ) : (
-                  <div className="mb-4 w-full h-64 bg-gray-200 flex items-center justify-center text-gray-400 rounded-lg shadow-md">
-                    No Image
-                  </div>
-                )}
-                <h2 className="text-2xl font-bold mb-2 text-white drop-shadow-md">{book.title}</h2>
-                <p className="text-indigo-200 mb-1 italic drop-shadow-sm">by {book.author}</p>
-                <p className="text-white text-opacity-90 mb-2 line-clamp-4 drop-shadow-sm">{book.description}</p>
-                {book.rating && (
-                  <p className="text-yellow-400 font-semibold mt-2 drop-shadow-md">Rating: {book.rating}</p>
-                )}
+              <div className={`relative w-full h-96 duration-700 transform-style-preserve-3d group-hover:rotate-y-180`}>
+                {/* Front Side */}
+                <div className={`absolute w-full h-full backface-hidden rounded-lg shadow-lg overflow-hidden border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 flex flex-col items-center justify-center ${genreColors[book.genre] ? genreColors[book.genre].replace('bg-', 'bg-opacity-30 ') : 'bg-gray-200 bg-opacity-30'}`}>
+                  {book.cover_i ? (
+                    <img
+                      src={`https://covers.openlibrary.org/b/id/${book.cover_i}-L.jpg`}
+                      alt={`${book.title} cover`}
+                      className="w-full h-72 object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-72 bg-gray-200 flex items-center justify-center text-gray-400">
+                      No Image
+                    </div>
+                  )}
+                  <h2 className="text-xl font-bold mt-2 text-white drop-shadow-md text-center px-2">{book.title}</h2>
+                  <p className="text-indigo-200 italic drop-shadow-sm text-center">{book.author}</p>
+                </div>
+                {/* Back Side */}
+                <div className="absolute w-full h-full backface-hidden rounded-lg shadow-lg overflow-auto border border-white border-opacity-30 backdrop-blur-md bg-white bg-opacity-20 rotate-y-180 p-4 text-white text-opacity-90">
+                  <h2 className="text-lg font-bold mb-2">{book.title}</h2>
+                  <p className="italic mb-2">by {book.author}</p>
+                  <p className="mb-4 whitespace-pre-wrap">{book.description}</p>
+                  {book.rating && (
+                    <p className="text-yellow-400 font-semibold">Rating: {book.rating}</p>
+                  )}
+                  <button
+                    onClick={() => toggleFavorite(book.id)}
+                    className={`mt-4 px-4 py-2 rounded-full font-semibold transition-colors duration-300 shadow-md ${
+                      favorites.includes(book.id)
+                        ? 'bg-yellow-400 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    aria-label={favorites.includes(book.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {favorites.includes(book.id) ? '★ Favorite' : '☆ Add Favorite'}
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => toggleFavorite(book.id)}
-                className={`mt-4 self-start px-4 py-2 rounded-full font-semibold transition-colors duration-300 shadow-md ${
-                  favorites.includes(book.id)
-                    ? 'bg-yellow-400 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-                aria-label={favorites.includes(book.id) ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                {favorites.includes(book.id) ? '★ Favorite' : '☆ Add Favorite'}
-              </button>
             </div>
           ))
         )}
