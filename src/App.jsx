@@ -157,30 +157,32 @@ function App() {
           filteredBooks.map((book) => (
             <div
               key={book.id}
-              className="bg-white rounded-lg shadow p-4 flex flex-col justify-between transition-transform transform hover:scale-105"
+              className={`rounded-lg p-4 flex flex-col justify-between transition-transform transform hover:scale-105 shadow-lg backdrop-blur-md bg-white bg-opacity-20 border border-white border-opacity-30 ${
+                genreColors[book.genre] ? genreColors[book.genre].replace('bg-', 'bg-opacity-30 ') : 'bg-gray-200 bg-opacity-30'
+              }`}
             >
               <div>
                 {book.cover_i ? (
                   <img
                     src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
                     alt={`${book.title} cover`}
-                    className="mb-2 rounded"
+                    className="mb-4 rounded-lg w-full h-64 object-cover shadow-md"
                   />
                 ) : (
-                  <div className="mb-2 h-48 bg-gray-200 flex items-center justify-center text-gray-400 rounded">
+                  <div className="mb-4 w-full h-64 bg-gray-200 flex items-center justify-center text-gray-400 rounded-lg shadow-md">
                     No Image
                   </div>
                 )}
-                <h2 className="text-xl font-semibold mb-1">{book.title}</h2>
-                <p className="text-gray-600 mb-2">by {book.author}</p>
-                <p className="text-gray-700">{book.description}</p>
+                <h2 className="text-2xl font-bold mb-2 text-white drop-shadow-md">{book.title}</h2>
+                <p className="text-indigo-200 mb-1 italic drop-shadow-sm">by {book.author}</p>
+                <p className="text-white text-opacity-90 mb-2 line-clamp-4 drop-shadow-sm">{book.description}</p>
                 {book.rating && (
-                  <p className="text-yellow-500 font-semibold mt-2">Rating: {book.rating}</p>
+                  <p className="text-yellow-400 font-semibold mt-2 drop-shadow-md">Rating: {book.rating}</p>
                 )}
               </div>
               <button
                 onClick={() => toggleFavorite(book.id)}
-                className={`mt-4 self-start px-3 py-1 rounded-full font-semibold transition-colors duration-300 ${
+                className={`mt-4 self-start px-4 py-2 rounded-full font-semibold transition-colors duration-300 shadow-md ${
                   favorites.includes(book.id)
                     ? 'bg-yellow-400 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
