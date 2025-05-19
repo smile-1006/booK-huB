@@ -27,15 +27,55 @@ function App() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
 
+  const fetchRandomBooks = async () => {
+    const popularQueries = ['bestseller', 'classic', 'popular', 'award winning', 'recommended'];
+    const randomQuery = popularQueries[Math.floor(Math.random() * popularQueries.length)];
+    try {
+      const endpoint = `https://openlibrary.org/search.json?q=${encodeURIComponent(randomQuery)}&limit=20`;
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      const docs = data.docs || [];
+
+      const genreSet = new Set(['All']);
+      docs.forEach((doc) => {
+        if (doc.subject) {
+          doc.subject.forEach((subj) => {
+            if (genreColors[subj]) {
+              genreSet.add(subj);
+            }
+          });
+        }
+      });
+      const genreList = Array.from(genreSet);
+
+      setGenres(genreList);
+
+      const mappedBooks = docs.map((doc) => ({
+        id: doc.key,
+        title: doc.title,
+        author: doc.author_name ? doc.author_name.join(', ') : 'Unknown',
+        description: doc.first_sentence ? (typeof doc.first_sentence === 'string' ? doc.first_sentence : doc.first_sentence.join(' ')) : 'No description available.',
+        genre: doc.subject ? (doc.subject.find(subj => genreColors[subj]) || 'Other') : 'Other',
+        cover_i: doc.cover_i,
+        rating: doc.ratings_average || null,
+      }));
+
+      setBooks(mappedBooks);
+      setAutocompleteOptions(mappedBooks.map((book) => book.title));
+    } catch (error) {
+      console.error('Error fetching books:', error);
+    }
+  };
+
   useEffect(() => {
-    fetchBooks('');
+    fetchRandomBooks();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
-
   const fetchBooks = async (query) => {
+    if (!query.trim()) {
+      fetchRandomBooks();
+      return;
+    }
     try {
       const endpoint = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`;
       const response = await fetch(endpoint);
@@ -72,6 +112,10 @@ function App() {
       console.error('Error fetching books:', error);
     }
   };
+
+  useEffect(() => {
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   const filteredBooks = useMemo(() => {
     let filtered = books;
